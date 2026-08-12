@@ -8,19 +8,20 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); }
-.topbar { background: #0f172a; color: #fff; padding: 14px 24px; }
+.app { display: flex; flex-direction: column; height: 100dvh; }
+.topbar { background: #0f172a; color: #fff; padding: 14px 24px; flex-shrink: 0; }
 .topbar h1 { margin: 0; font-size: 20px; letter-spacing: 0.5px; }
-.layout { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; max-width: 1280px; margin: 0 auto; }
-.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.layout { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; max-width: 1280px; margin: 0 auto; width: 100%; flex: 1; min-height: 0; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .upload { margin-bottom: 20px; }
 .dropzone { border: 2px dashed var(--border); border-radius: 10px; padding: 22px; text-align: center; color: var(--muted); cursor: pointer; }
 .dropzone.dragging { border-color: var(--accent); background: #eff6ff; }
-.upload-items { list-style: none; padding: 0; margin: 10px 0 0; font-size: 13px; }
+.upload-items { list-style: none; padding: 0; margin: 10px 0 0; font-size: 13px; max-height: 120px; overflow-y: auto; }
 .upload-items li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; }
 .status { font-style: normal; color: var(--muted); }
 .status.ready { color: #16a34a; }
 .status.failed { color: #dc2626; }
-.library { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.library { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; min-height: 0; }
 .library button { width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; }
 .library button.selected { border-color: var(--accent); background: #eff6ff; }
 .doc-name, .doc-meta { display: block; }
@@ -30,10 +31,17 @@ body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-
 .badge.processing { background: #fef9c3; color: #854d0e; }
 .badge.failed { background: #fee2e2; color: #991b1b; }
 .empty { color: var(--muted); font-size: 14px; }
-.chat { display: flex; flex-direction: column; height: 100%; }
+.chat { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .chat-header { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 .chat-header h2 { margin: 0; font-size: 16px; }
-.messages { flex: 1; overflow-y: auto; max-height: 62vh; padding: 12px 0; display: flex; flex-direction: column; gap: 12px; }
+.messages { flex: 1; overflow-y: auto; min-height: 0; padding: 12px 0; display: flex; flex-direction: column; gap: 12px; }
+@media (max-width: 767px) {
+  .app { height: auto; }
+  .layout { grid-template-columns: 1fr; height: auto; }
+  .panel { overflow: visible; }
+  .library { overflow: visible; }
+  .messages { overflow: visible; }
+}
 .message { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
 .message.user { align-self: flex-end; background: var(--accent); color: #fff; }
 .message.assistant { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
