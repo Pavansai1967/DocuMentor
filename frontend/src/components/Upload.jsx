@@ -17,7 +17,7 @@ export default function Upload({ onUploaded }) {
   async function handleFiles(files) {
     for (const file of files) {
       if (!file.name.toLowerCase().endsWith('.pdf')) {
-        setItems((prev) => [...prev, { name: file.name, status: 'failed', error: 'Not a PDF' }]);
+        setItems((prev) => [...prev, { id: crypto.randomUUID(), name: file.name, status: 'failed', error: 'Not a PDF' }]);
         continue;
       }
       const id = crypto.randomUUID();
@@ -43,7 +43,12 @@ export default function Upload({ onUploaded }) {
         onClick={() => document.getElementById('file-input')?.click()}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter') document.getElementById('file-input')?.click(); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            document.getElementById('file-input')?.click();
+          }
+        }}
       >
         <input
           id="file-input"

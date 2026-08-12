@@ -30,6 +30,8 @@ Backend modules: `config`, `pdf_parser`, `chunker`, `embeddings`, `mongo_client`
 
 ## 2. Create the Vector Search index
 
+The `chunks` collection must exist first (Atlas cannot host an index on a missing collection). Upload at least one document, or create it with `db.create_collection('chunks')`.
+
 Programmatic (from `backend/`, with `MONGODB_URI` exported):
 
 ```bash
