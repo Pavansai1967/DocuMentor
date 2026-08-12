@@ -18,7 +18,7 @@ def _to_api_definition(definition: dict) -> dict:
                 "similarity": field["similarity"],
             }
         else:
-            fields[field["path"]] = {"type": field["type"]}
+            fields[field["path"]] = {"type": "objectId"}
     return {"mappings": {"dynamic": False, "fields": fields}}
 
 
@@ -28,9 +28,11 @@ def create_vector_index(uri: str, db_name: str) -> str:
     with MongoClient(uri, serverSelectionTimeoutMS=10000) as client:
         client.admin.command("ping")
         collection = client[db_name]["chunks"]
-        existing = collection.list_search_indexes()
-        for idx in existing:
+        for idx in collection.list_search_indexes():
             if idx.get("name") == INDEX_NAME:
+                if idx.get("status") == "FAILED":
+                    collection.drop_search_index(INDEX_NAME)
+                    break
                 return "already exists"
         collection.create_search_index({"name": INDEX_NAME, "definition": _to_api_definition(INDEX_DEFINITION)})
         return "created"
