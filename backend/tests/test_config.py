@@ -1,11 +1,12 @@
 import importlib
 
+
 def test_settings_defaults(monkeypatch, tmp_path):
     for key in ["MONGODB_URI", "GROQ_API_KEY", "MONGODB_DB_NAME", "LLM_MODEL",
                 "CHUNK_SIZE", "CHUNK_OVERLAP", "EMBEDDING_MODEL", "CORS_ORIGINS"]:
         monkeypatch.delenv(key, raising=False)
     monkeypatch.chdir(tmp_path)
-    import app.config as config
+    from app import config
     importlib.reload(config)
     s = config.settings
     assert s.mongodb_db_name == "documentor_db"
@@ -22,7 +23,7 @@ def test_settings_from_env(monkeypatch, tmp_path):
     monkeypatch.setenv("GROQ_API_KEY", "gsk_test")
     monkeypatch.setenv("MONGODB_DB_NAME", "custom_db")
     monkeypatch.setenv("CHUNK_SIZE", "300")
-    import app.config as config
+    from app import config
     importlib.reload(config)
     s = config.settings
     assert s.mongodb_uri == "mongodb://x:y@localhost/"

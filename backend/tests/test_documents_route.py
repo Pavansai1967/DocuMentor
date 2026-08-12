@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from bson import ObjectId
 from fastapi import FastAPI
@@ -10,7 +10,7 @@ from app.routes_documents import router as documents_router
 
 class FakeStore:
     def list_documents(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return [
             {"_id": ObjectId(), "filename": "a.pdf", "upload_date": now,
              "page_count": 3, "status": "ready", "error": None},

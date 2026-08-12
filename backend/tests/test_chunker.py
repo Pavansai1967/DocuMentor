@@ -1,4 +1,4 @@
-from app.chunker import Chunk, chunk_pages
+from app.chunker import chunk_pages
 
 
 def word_count(text: str) -> int:

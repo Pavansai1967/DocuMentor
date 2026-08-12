@@ -1,7 +1,8 @@
 from fastapi import HTTPException
 
 from .config import settings
-from .embeddings import Embedder, get_embedder as _get_embedder_singleton
+from .embeddings import Embedder
+from .embeddings import get_embedder as _get_embedder_singleton
 from .llm_client import LLM
 from .mongo_client import MongoStore
 

@@ -2,7 +2,6 @@ import pytest
 from fastapi import HTTPException
 
 from app import deps
-from app.config import settings
 
 
 def test_get_store_raises_503_without_uri(monkeypatch):

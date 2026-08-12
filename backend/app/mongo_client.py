@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from bson import ObjectId
 from pymongo import MongoClient
@@ -42,11 +42,11 @@ class MongoStore:
         result = self.documents.insert_one(
             {
                 "filename": filename,
-                "upload_date": datetime.now(timezone.utc),
+                "upload_date": datetime.now(UTC),
                 "page_count": 0,
                 "status": "processing",
                 "error": None,
-                "processing_started_at": datetime.now(timezone.utc),
+                "processing_started_at": datetime.now(UTC),
             }
         )
         return result.inserted_id

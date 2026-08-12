@@ -11,7 +11,7 @@ def test_health():
 
 def test_routes_mounted():
     app = create_app()
-    paths = {getattr(route, "path") for route in app.routes}
+    paths = set(app.openapi()["paths"])
     assert "/upload" in paths
     assert "/documents" in paths
     assert "/chat" in paths
