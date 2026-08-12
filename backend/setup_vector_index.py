@@ -8,6 +8,7 @@ INDEX_DEFINITION = {
 
 
 def _to_api_definition(definition: dict) -> dict:
+    # Atlas API requires the mappings/knnVector shape; the flat form is for the manual UI path
     fields = {}
     for field in definition["fields"]:
         if field["type"] == "vector":
