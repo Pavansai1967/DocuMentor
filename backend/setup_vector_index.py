@@ -7,6 +7,20 @@ INDEX_DEFINITION = {
 }
 
 
+def _to_api_definition(definition: dict) -> dict:
+    fields = {}
+    for field in definition["fields"]:
+        if field["type"] == "vector":
+            fields[field["path"]] = {
+                "type": "knnVector",
+                "dimensions": field["numDimensions"],
+                "similarity": field["similarity"],
+            }
+        else:
+            fields[field["path"]] = {"type": field["type"]}
+    return {"mappings": {"dynamic": False, "fields": fields}}
+
+
 def create_vector_index(uri: str, db_name: str) -> str:
     from pymongo import MongoClient
 
@@ -17,7 +31,7 @@ def create_vector_index(uri: str, db_name: str) -> str:
         for idx in existing:
             if idx.get("name") == INDEX_NAME:
                 return "already exists"
-        collection.create_search_index({"name": INDEX_NAME, "definition": INDEX_DEFINITION})
+        collection.create_search_index({"name": INDEX_NAME, "definition": _to_api_definition(INDEX_DEFINITION)})
         return "created"
 
 
