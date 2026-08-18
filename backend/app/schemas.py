@@ -17,6 +17,7 @@ class DocumentOut(BaseModel):
     page_count: int | None = 0
     status: str
     error: str | None = None
+    summary: str | None = None
 
     @field_validator("id", mode="before")
     @classmethod
@@ -25,5 +26,4 @@ class DocumentOut(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    document_id: str
     question: str

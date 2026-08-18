@@ -9,13 +9,15 @@ from app.routes_chat import router as chat_router
 
 
 class FakeStore:
-    def get_document(self, document_id):
-        return {"_id": document_id, "status": "ready", "filename": "a.pdf"}
+    def list_documents(self):
+        return [
+            {"_id": ObjectId(), "filename": "a.pdf", "status": "ready", "summary": "Test document"},
+        ]
 
     def vector_search(self, document_id, embedding, top_k=4):
         return [
-            {"page_number": 2, "text": "DocuMentor chunks with overlap."},
-            {"page_number": 5, "text": "Vector search is cosine."},
+            {"_id": ObjectId(), "document_id": document_id, "page_number": 2, "text": "DocuMentor chunks with overlap."},
+            {"_id": ObjectId(), "document_id": document_id, "page_number": 5, "text": "Vector search is cosine."},
         ]
 
 
@@ -23,12 +25,16 @@ class FakeEmbedder:
     def encode(self, texts, batch_size=32):
         return [[0.1] * 384 for _ in texts]
 
-    def count_tokens(self, text):
-        return len(text.split())
-
 
 class FakeLLM:
-    async def stream_answer(self, prompt):
+    async def call(self, model, prompt, system="", temperature=0.2, max_tokens=1024):
+        if "plan" in model.lower() or "qwen" in model.lower():
+            return json.dumps([{"document_id": str(ObjectId()), "sub_query": "test query"}])
+        elif "evaluat" in model.lower() or "gpt-oss-20b" in model.lower():
+            return json.dumps({"sufficient": True, "reformulated_query": ""})
+        return ""
+
+    async def stream_answer(self, model, prompt, system=""):
         for tok in ["Hello", " ", "DocuMentor"]:
             yield tok
 
@@ -48,24 +54,13 @@ def parse_events(text: str) -> list[dict]:
 
 def test_chat_streams_tokens_then_sources_then_done():
     client = TestClient(make_app())
-    with client.stream("POST", "/chat", json={"document_id": str(ObjectId()), "question": "hi"}) as res:
+    with client.stream("POST", "/chat", json={"question": "hi"}) as res:
         assert res.status_code == 200
         assert res.headers["content-type"].startswith("text/event-stream")
         events = parse_events(res.read().decode())
     types = [e["type"] for e in events]
     assert "token" in types
-    assert types[-2] == "sources"
+    assert "trace" in types
     assert types[-1] == "done"
-    sources = events[-2]["sources"]
-    assert sources[0]["page_number"] == 2
-
-
-def test_chat_missing_document_returns_404():
-    class MissingStore(FakeStore):
-        def get_document(self, document_id):
-            return None
-
-    res = TestClient(make_app(store=MissingStore())).post(
-        "/chat", json={"document_id": str(ObjectId()), "question": "hi"}
-    )
-    assert res.status_code == 404
+    trace = next(e for e in events if e["type"] == "trace")
+    assert len(trace["trace"]) > 0

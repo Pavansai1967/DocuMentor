@@ -46,15 +46,19 @@ class MongoStore:
                 "page_count": 0,
                 "status": "processing",
                 "error": None,
+                "summary": None,
                 "processing_started_at": datetime.now(UTC),
             }
         )
         return result.inserted_id
 
-    def mark_document_ready(self, document_id: ObjectId, page_count: int) -> None:
+    def mark_document_ready(self, document_id: ObjectId, page_count: int, summary: str | None = None) -> None:
+        update: dict = {"status": "ready", "page_count": page_count, "error": None}
+        if summary is not None:
+            update["summary"] = summary
         self.documents.update_one(
             {"_id": ObjectId(document_id)},
-            {"$set": {"status": "ready", "page_count": page_count, "error": None}},
+            {"$set": update},
         )
 
     def mark_document_failed(self, document_id: ObjectId, error: str) -> None:
@@ -75,4 +79,19 @@ class MongoStore:
 
     def vector_search(self, document_id: ObjectId, embedding: list[float], top_k: int = 4) -> list[dict]:
         pipeline = build_vector_search_pipeline(document_id, embedding, top_k)
+        return list(self.chunks.aggregate(pipeline))
+
+    def vector_search_all(self, embedding: list[float], top_k: int = 3) -> list[dict]:
+        pipeline = [
+            {
+                "$vectorSearch": {
+                    "index": "vector_index",
+                    "path": "embedding",
+                    "queryVector": embedding,
+                    "numCandidates": top_k * 10,
+                    "limit": top_k,
+                }
+            },
+            {"$project": {"_id": 1, "document_id": 1, "page_number": 1, "chunk_index": 1, "text": 1}},
+        ]
         return list(self.chunks.aggregate(pipeline))

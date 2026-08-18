@@ -1,23 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { streamChat } from '../api';
 import Sources from './Sources';
+import AgentSteps from './AgentSteps';
 
-export default function Chat({ document }) {
+export default function Chat({ documents }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const endRef = useRef(null);
 
   useEffect(() => {
-    setMessages([]);
-    setInput('');
-  }, [document?.id]);
-
-  useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const ready = document?.status === 'ready';
+  const ready = documents.some((d) => d.status === 'ready');
 
   async function ask() {
     const question = input.trim();
@@ -27,12 +23,9 @@ export default function Chat({ document }) {
     setMessages((prev) => [...prev, { role: 'user', text: question }]);
     setMessages((prev) => [...prev, { role: 'assistant', text: '' }]);
 
-    const controller = new AbortController();
     try {
       await streamChat({
-        document_id: document.id,
         question,
-        signal: controller.signal,
         onToken: (t) => setMessages((prev) => {
           const copy = [...prev];
           copy[copy.length - 1] = { ...copy[copy.length - 1], text: copy[copy.length - 1].text + t };
@@ -41,6 +34,11 @@ export default function Chat({ document }) {
         onSources: (sources) => setMessages((prev) => {
           const copy = [...prev];
           copy[copy.length - 1] = { ...copy[copy.length - 1], sources };
+          return copy;
+        }),
+        onTrace: (trace) => setMessages((prev) => {
+          const copy = [...prev];
+          copy[copy.length - 1] = { ...copy[copy.length - 1], trace };
           return copy;
         }),
         onError: (err) => setMessages((prev) => {
@@ -63,17 +61,17 @@ export default function Chat({ document }) {
   return (
     <section className="chat">
       <header className="chat-header">
-        {document ? <h2>{document.filename}</h2> : <h2>Select a document to chat</h2>}
-        {document && <span className={`badge ${document.status}`}>{document.status}</span>}
+        <h2>Chat with your documents</h2>
       </header>
 
       <div className="messages">
-        {messages.length === 0 && <p className="empty">Ask a question about this document. Answers are stateless — each question is answered independently.</p>}
+        {messages.length === 0 && <p className="empty">Ask a question about your documents. The agent will search across your entire library.</p>}
         {messages.map((m, i) => (
           <div key={i} className={`message ${m.role}`}>
             {m.text || (m.error ? '—' : '…')}
             {m.error && <p className="error">Error: {m.error}</p>}
             {m.role === 'assistant' && <Sources sources={m.sources} />}
+            {m.role === 'assistant' && <AgentSteps trace={m.trace} />}
           </div>
         ))}
         <div ref={endRef} />
@@ -86,7 +84,7 @@ export default function Chat({ document }) {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={ready ? 'Ask about this document…' : 'Upload a PDF and wait for it to be ready'}
+          placeholder={ready ? 'Ask about your documents…' : 'Upload a PDF and wait for it to be ready'}
           disabled={!ready || streaming}
         />
         <button type="submit" disabled={!ready || streaming || !input.trim()}>

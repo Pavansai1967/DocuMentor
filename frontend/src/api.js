@@ -29,11 +29,11 @@ export async function listDocuments() {
   return res.json();
 }
 
-export async function streamChat({ document_id, question, onToken, onSources, onDone, onError, signal }) {
+export async function streamChat({ question, onToken, onSources, onTrace, onDone, onError, signal }) {
   const res = await fetch(`${BASE}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ document_id, question }),
+    body: JSON.stringify({ question }),
     signal,
   });
   if (!res.ok || !res.body) {
@@ -54,6 +54,7 @@ export async function streamChat({ document_id, question, onToken, onSources, on
       if (!event) continue;
       if (event.type === 'token') onToken?.(event.text);
       else if (event.type === 'sources') onSources?.(event.sources);
+      else if (event.type === 'trace') onTrace?.(event.trace);
       else if (event.type === 'done') onDone?.();
       else if (event.type === 'error') onError?.(new Error(event.message));
     }

@@ -7,11 +7,16 @@ class Settings(BaseSettings):
     mongodb_uri: str = ""
     mongodb_db_name: str = "documentor_db"
     groq_api_key: str = ""
-    llm_model: str = "llama-3.1-8b-instant"
+    plan_model: str = "qwen/qwen3.6-27b"
+    evaluate_model: str = "openai/gpt-oss-20b"
+    answer_model: str = "openai/gpt-oss-120b"
     chunk_size: int = 500
     chunk_overlap: int = 50
     embedding_model: str = "all-MiniLM-L6-v2"
     cors_origins: str = "http://localhost:5173"
+    max_agent_iterations: int = 2
+    default_top_k: int = 3
+    max_accumulated_chunks: int = 10
 
 
 settings = Settings()

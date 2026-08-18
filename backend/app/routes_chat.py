@@ -1,13 +1,12 @@
-import asyncio
 import json
 
-from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
+from .agent_graph import AgentState, build_graph
 from .deps import get_embedder, get_llm, get_store
 from .embeddings import Embedder
-from .llm_client import LLM, build_prompt
+from .llm_client import LLM
 from .mongo_client import MongoStore
 from .schemas import ChatRequest
 
@@ -25,23 +24,34 @@ async def chat(
     embedder: Embedder = Depends(get_embedder),
     llm: LLM = Depends(get_llm),
 ) -> StreamingResponse:
-    try:
-        document = await asyncio.to_thread(store.get_document, ObjectId(payload.document_id))
-    except Exception:
-        raise HTTPException(status_code=404, detail="Document not found")
-    if document is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-    if document.get("status") != "ready":
-        raise HTTPException(status_code=409, detail="Document is not ready to chat yet")
-
     async def generate():
         try:
-            question_vector = (await asyncio.to_thread(embedder.encode, [payload.question]))[0]
-            sources = await asyncio.to_thread(store.vector_search, ObjectId(payload.document_id), question_vector, 4)
-            prompt = build_prompt(payload.question, sources)
-            async for token in llm.stream_answer(prompt):
-                yield _sse("token", {"text": token})
-            yield _sse("sources", {"sources": sources})
+            graph = build_graph(store, embedder, llm)
+            initial_state = AgentState(question=payload.question)
+
+            final_state = None
+            async for event in graph.astream(initial_state):
+                for node_output in event.values():
+                    if node_output:
+                        final_state = node_output
+
+            if final_state:
+                answer = final_state.get("answer", "")
+                for char in answer:
+                    yield _sse("token", {"text": char})
+
+                chunks = final_state.get("chunks", [])
+                sources = [
+                    {
+                        "document_id": str(c.get("document_id", "")),
+                        "page_number": c.get("page_number", 0),
+                        "text": c.get("text", ""),
+                    }
+                    for c in chunks
+                ]
+                trace = final_state.get("trace", [])
+                yield _sse("sources", {"sources": sources})
+                yield _sse("trace", {"trace": trace})
             yield _sse("done", {})
         except Exception as exc:
             yield _sse("error", {"message": str(exc)})

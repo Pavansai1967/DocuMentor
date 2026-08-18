@@ -2,19 +2,27 @@ import importlib
 
 
 def test_settings_defaults(monkeypatch, tmp_path):
-    for key in ["MONGODB_URI", "GROQ_API_KEY", "MONGODB_DB_NAME", "LLM_MODEL",
-                "CHUNK_SIZE", "CHUNK_OVERLAP", "EMBEDDING_MODEL", "CORS_ORIGINS"]:
+    for key in ["MONGODB_URI", "GROQ_API_KEY", "MONGODB_DB_NAME", "PLAN_MODEL",
+                "EVALUATE_MODEL", "ANSWER_MODEL", "CHUNK_SIZE", "CHUNK_OVERLAP",
+                "EMBEDDING_MODEL", "CORS_ORIGINS", "MAX_AGENT_ITERATIONS",
+                "DEFAULT_TOP_K", "MAX_ACCUMULATED_CHUNKS"]:
         monkeypatch.delenv(key, raising=False)
     monkeypatch.chdir(tmp_path)
     from app import config
     importlib.reload(config)
     s = config.settings
     assert s.mongodb_db_name == "documentor_db"
-    assert s.llm_model == "llama-3.1-8b-instant"
+    assert s.plan_model == "qwen/qwen3.6-27b"
+    assert s.evaluate_model == "openai/gpt-oss-20b"
+    assert s.answer_model == "openai/gpt-oss-120b"
     assert s.chunk_size == 500
     assert s.chunk_overlap == 50
     assert s.embedding_model == "all-MiniLM-L6-v2"
     assert s.cors_origins == "http://localhost:5173"
+    assert s.max_agent_iterations == 2
+    assert s.default_top_k == 3
+    assert s.max_accumulated_chunks == 10
+
 
 def test_settings_from_env(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)

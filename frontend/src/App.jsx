@@ -6,14 +6,12 @@ import Chat from './components/Chat';
 
 export default function App() {
   const [documents, setDocuments] = useState([]);
-  const [selected, setSelected] = useState(null);
   const timer = useRef(null);
 
   async function refresh() {
     try {
       const docs = await listDocuments();
       setDocuments(docs);
-      setSelected((cur) => (cur ? docs.find((d) => d.id === cur.id) ?? null : cur));
     } catch {
       setDocuments([]);
     }
@@ -44,10 +42,10 @@ export default function App() {
         <aside className="panel library-panel">
           <Upload onUploaded={refresh} />
           <h2>Your documents</h2>
-          <Library documents={documents} selectedId={selected?.id} onSelect={setSelected} />
+          <Library documents={documents} />
         </aside>
         <section className="panel chat-panel">
-          <Chat document={selected} />
+          <Chat documents={documents} />
         </section>
       </main>
     </div>

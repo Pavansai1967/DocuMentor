@@ -1,18 +1,6 @@
 import pytest
 
-from app.llm_client import LLM, build_prompt
-
-
-def test_build_prompt_includes_sources_and_indexes():
-    sources = [
-        {"page_number": 3, "text": "Alpha is 42."},
-        {"page_number": 7, "text": "Beta is 99."},
-    ]
-    prompt = build_prompt("What is alpha?", sources)
-    assert "DocuMentor" in prompt
-    assert "[1] (p. 3) Alpha is 42." in prompt
-    assert "[2] (p. 7) Beta is 99." in prompt
-    assert "What is alpha?" in prompt
+from app.llm_client import LLM
 
 
 @pytest.mark.asyncio
@@ -56,6 +44,6 @@ async def test_stream_answer_yields_token_deltas(monkeypatch):
     from app import llm_client
 
     monkeypatch.setattr(llm_client, "AsyncGroq", FakeClient)
-    llm = LLM(api_key="gsk_test", model="fake-model")
-    tokens = [t async for t in llm.stream_answer("prompt")]
+    llm = LLM(api_key="gsk_test")
+    tokens = [t async for t in llm.stream_answer("fake-model", "prompt")]
     assert tokens == ["hi", "hi"]

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from reportlab.pdfgen import canvas
 
-from app.deps import get_embedder, get_store
+from app.deps import get_embedder, get_llm, get_store
 from app.routes_upload import router as upload_router
 
 
@@ -28,7 +28,7 @@ class FakeStore:
         assert rows
         assert len(rows[0]["embedding"]) == 384
 
-    def mark_document_ready(self, document_id, page_count):
+    def mark_document_ready(self, document_id, page_count, summary=None):
         pass
 
     def mark_document_failed(self, document_id, error):
@@ -43,11 +43,17 @@ class FakeEmbedder:
         return [[0.1] * 384 for _ in texts]
 
 
+class FakeLLM:
+    async def call(self, model, prompt, system="", temperature=0.2, max_tokens=1024):
+        return "This is a test document summary."
+
+
 def make_app():
     app = FastAPI()
     app.include_router(upload_router)
     app.dependency_overrides[get_store] = lambda: FakeStore()
     app.dependency_overrides[get_embedder] = lambda: FakeEmbedder()
+    app.dependency_overrides[get_llm] = lambda: FakeLLM()
     return app
 
 

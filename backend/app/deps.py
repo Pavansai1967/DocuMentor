@@ -32,5 +32,5 @@ def get_llm() -> LLM:
     if not settings.groq_api_key:
         raise HTTPException(status_code=503, detail="GROQ_API_KEY is not configured")
     if _llm is None:
-        _llm = LLM(settings.groq_api_key, settings.llm_model)
+        _llm = LLM(settings.groq_api_key)
     return _llm
