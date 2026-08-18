@@ -110,7 +110,7 @@ npx vitest run
 
 ## How it works
 
-- **Upload pipeline:** `POST /upload` returns immediately; a background task parses the PDF, chunks each page's text (continuous `chunk_index`, page-scoped), embeds the chunks with `all-MiniLM-L6-v2` (384-dim, normalized), and inserts them batched into `chunks` alongside the `documents` record.
+- **Upload pipeline:** `POST /upload` returns immediately; a background task parses the PDF, chunks each page's text (continuous `chunk_index`, page-scoped), embeds the chunks with `all-MiniLM-L6-v2` (384-dim, normalized), and inserts them batched into `chunks` alongside the `documents` record .
 - **Chat/vector search:** the question is embedded, an Atlas `$vectorSearch` (index `vector_index`, cosine, top-k 4, filtered to the selected `document_id`) returns the most relevant chunks, a stateless prompt asks the model to answer only from those excerpts and cite them as `[1]`, `[2]`, …, and tokens stream back as SSE.
 - **Stateless:** each question is answered independently — there is no conversation memory.
 
