@@ -100,7 +100,7 @@ npx vitest run
 
 1. Create a Blueprint from `backend/render.yaml`, or add a New Web Service: root directory `backend`, build command `pip install -r requirements.txt`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
 2. Set environment variables (`MONGODB_URI`, `GROQ_API_KEY`).
-3. Note: the free tier re-downloads the embedding model (~90MB) on cold start.
+3. Note:the free tier re-downloads the embedding model(~90MB) on cold start.
 
 ## 7. Deploy frontend to Vercel/Netlify (free)
 
