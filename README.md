@@ -91,7 +91,7 @@ Open http://localhost:5173.
 ```bash
 cd backend
 python -m pytest            # unit tests (no external services)
-python -m pytest -m live    # live end-to-end test (needs .env)
+python -m pytest -m live    # live end-to-end test (needs .env) 
 cd ../frontend
 npx vitest run
 ```
